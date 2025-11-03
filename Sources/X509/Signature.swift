@@ -14,6 +14,9 @@
 
 import SwiftASN1
 import Crypto
+#if canImport(CryptoKit)
+import CryptoKit
+#endif
 import _CryptoExtras
 #if canImport(FoundationEssentials)
 import FoundationEssentials
