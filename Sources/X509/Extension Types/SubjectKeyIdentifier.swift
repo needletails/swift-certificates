@@ -13,7 +13,11 @@
 //===----------------------------------------------------------------------===//
 
 import SwiftASN1
+#if FORCE_BUILD_SWIFT_CRYPTO_API || !canImport(CryptoKit)
 import Crypto
+#else
+import CryptoKit
+#endif
 import struct Foundation.Data
 
 /// Provides a means of identifying a certificate that contains a particular public key.

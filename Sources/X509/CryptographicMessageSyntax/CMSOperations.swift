@@ -17,7 +17,11 @@ import FoundationEssentials
 import Foundation
 #endif
 import SwiftASN1
+#if FORCE_BUILD_SWIFT_CRYPTO_API || !canImport(CryptoKit)
 import Crypto
+#else
+import CryptoKit
+#endif
 
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 public enum CMS: Sendable {

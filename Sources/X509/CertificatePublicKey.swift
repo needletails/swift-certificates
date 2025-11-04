@@ -13,7 +13,11 @@
 //===----------------------------------------------------------------------===//
 
 import SwiftASN1
-@preconcurrency import Crypto
+#if FORCE_BUILD_SWIFT_CRYPTO_API || !canImport(CryptoKit)
+import Crypto
+#else
+import CryptoKit
+#endif
 import _CryptoExtras
 #if canImport(FoundationEssentials)
 import FoundationEssentials
@@ -186,10 +190,10 @@ extension Certificate.PublicKey: CustomStringConvertible {
 extension Certificate.PublicKey {
     @usableFromInline
     enum BackingPublicKey: Hashable, Sendable {
-        case p256(Crypto.P256.Signing.PublicKey)
-        case p384(Crypto.P384.Signing.PublicKey)
-        case p521(Crypto.P521.Signing.PublicKey)
-        case rsa(_CryptoExtras._RSA.Signing.PublicKey)
+        case p256(P256.Signing.PublicKey)
+        case p384(P384.Signing.PublicKey)
+        case p521(P521.Signing.PublicKey)
+        case rsa(_RSA.Signing.PublicKey)
         case ed25519(Curve25519.Signing.PublicKey)
 
         @inlinable

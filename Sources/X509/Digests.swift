@@ -17,7 +17,11 @@ import FoundationEssentials
 #else
 import Foundation
 #endif
-@preconcurrency import Crypto
+#if FORCE_BUILD_SWIFT_CRYPTO_API || !canImport(CryptoKit)
+import Crypto
+#else
+import CryptoKit
+#endif
 
 @usableFromInline
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)

@@ -1,4 +1,4 @@
-// swift-tools-version:5.10
+// swift-tools-version:6.1
 //===----------------------------------------------------------------------===//
 //
 // This source file is part of the SwiftCertificates open source project
@@ -24,6 +24,7 @@ let package = Package(
             targets: ["X509"]
         )
     ],
+    traits: [.default(enabledTraits: ["FORCE_BUILD_SWIFT_CRYPTO_API"]), .trait(name: "FORCE_BUILD_SWIFT_CRYPTO_API")],
     targets: [
         .target(
             name: "X509",
@@ -75,7 +76,7 @@ let package = Package(
 // we can depend on local versions of our dependencies instead of fetching them remotely.
 if ProcessInfo.processInfo.environment["SWIFTCI_USE_LOCAL_DEPS"] == nil {
     package.dependencies += [
-        .package(url: "https://github.com/apple/swift-crypto.git", "3.12.3"..<"5.0.0"),
+        .package(url: "https://github.com/needletails/swift-crypto.git", branch: "trait/force-build-swift-crypto-api", traits: ["FORCE_BUILD_SWIFT_CRYPTO_API"]),
         .package(url: "https://github.com/apple/swift-asn1.git", from: "1.1.0"),
     ]
 } else {

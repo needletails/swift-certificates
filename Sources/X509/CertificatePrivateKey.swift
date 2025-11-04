@@ -18,11 +18,13 @@ import FoundationEssentials
 #else
 import Foundation
 #endif
-@preconcurrency import Crypto
-#if canImport(CryptoKit)
+#if FORCE_BUILD_SWIFT_CRYPTO_API || !canImport(CryptoKit)
+import Crypto
+#else
 import CryptoKit
 #endif
 import _CryptoExtras
+
 
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension Certificate {
@@ -78,7 +80,7 @@ extension Certificate {
             self.backing = .ed25519(ed25519)
         }
 
-        #if canImport(Darwin)
+        #if canImport(Darwin) && !FORCE_BUILD_SWIFT_CRYPTO_API
         /// Construct a private key wrapping a SecureEnclave.P256 private key.
         /// - Parameter secureEnclaveP256: The SecureEnclave.P256 private key to wrap.
         @inlinable
@@ -114,7 +116,7 @@ extension Certificate {
                 return try p521.signature(for: bytes, signatureAlgorithm: signatureAlgorithm)
             case .rsa(let rsa):
                 return try rsa.signature(for: bytes, signatureAlgorithm: signatureAlgorithm)
-            #if canImport(Darwin)
+            #if canImport(Darwin) && !FORCE_BUILD_SWIFT_CRYPTO_API
             case .secureEnclaveP256(let secureEnclaveP256):
                 return try secureEnclaveP256.signature(for: bytes, signatureAlgorithm: signatureAlgorithm)
             case .secKey(let secKeyWrapper):
@@ -138,7 +140,7 @@ extension Certificate {
                 return PublicKey(p521.publicKey)
             case .rsa(let rsa):
                 return PublicKey(rsa.publicKey)
-            #if canImport(Darwin)
+            #if canImport(Darwin) && !FORCE_BUILD_SWIFT_CRYPTO_API
             case .secureEnclaveP256(let secureEnclaveP256):
                 return PublicKey(secureEnclaveP256.publicKey)
             case .secKey(let secKeyWrapper):
@@ -160,7 +162,7 @@ extension Certificate {
                 return .ecdsaWithSHA512
             case .rsa:
                 return .sha256WithRSAEncryption
-            #if canImport(Darwin)
+            #if canImport(Darwin) && !FORCE_BUILD_SWIFT_CRYPTO_API
             case .secureEnclaveP256:
                 return .ecdsaWithSHA256
             case .secKey(let key):
@@ -203,7 +205,7 @@ extension Certificate.PrivateKey: CustomStringConvertible {
             return "P521.PrivateKey"
         case .rsa(let publicKey):
             return "RSA\(publicKey.keySizeInBits).PrivateKey"
-        #if canImport(Darwin)
+        #if canImport(Darwin) && !FORCE_BUILD_SWIFT_CRYPTO_API
         case .secureEnclaveP256:
             return "SecureEnclave.P256.PrivateKey"
         case .secKey:
@@ -219,15 +221,15 @@ extension Certificate.PrivateKey: CustomStringConvertible {
 extension Certificate.PrivateKey {
     @usableFromInline
     enum BackingPrivateKey: Hashable, Sendable {
-        case p256(Crypto.P256.Signing.PrivateKey)
-        case p384(Crypto.P384.Signing.PrivateKey)
-        case p521(Crypto.P521.Signing.PrivateKey)
-        case rsa(_CryptoExtras._RSA.Signing.PrivateKey)
-        #if canImport(Darwin)
+        case p256(P256.Signing.PrivateKey)
+        case p384(P384.Signing.PrivateKey)
+        case p521(P521.Signing.PrivateKey)
+        case rsa(_RSA.Signing.PrivateKey)
+        #if canImport(Darwin) && !FORCE_BUILD_SWIFT_CRYPTO_API
         case secureEnclaveP256(SecureEnclave.P256.Signing.PrivateKey)
         case secKey(SecKeyWrapper)
         #endif
-        case ed25519(Crypto.Curve25519.Signing.PrivateKey)
+        case ed25519(Curve25519.Signing.PrivateKey)
 
         @inlinable
         static func == (lhs: BackingPrivateKey, rhs: BackingPrivateKey) -> Bool {
@@ -240,7 +242,7 @@ extension Certificate.PrivateKey {
                 return l.rawRepresentation == r.rawRepresentation
             case (.rsa(let l), .rsa(let r)):
                 return l.derRepresentation == r.derRepresentation
-            #if canImport(Darwin)
+            #if canImport(Darwin) && !FORCE_BUILD_SWIFT_CRYPTO_API
             case (.secureEnclaveP256(let l), .secureEnclaveP256(let r)):
                 return l.dataRepresentation == r.dataRepresentation
             case (.secKey(let l), .secKey(let r)):
@@ -268,7 +270,7 @@ extension Certificate.PrivateKey {
             case .rsa(let digest):
                 hasher.combine(3)
                 hasher.combine(digest.derRepresentation)
-            #if canImport(Darwin)
+            #if canImport(Darwin) && !FORCE_BUILD_SWIFT_CRYPTO_API
             case .secureEnclaveP256(let digest):
                 hasher.combine(4)
                 hasher.combine(digest.dataRepresentation)
@@ -305,7 +307,7 @@ extension Certificate.PrivateKey {
     public init(pemDocument: PEMDocument) throws {
         switch pemDocument.discriminator {
         case Self.pemDiscriminatorForRSA:
-            self = try .init(_CryptoExtras._RSA.Signing.PrivateKey.init(derRepresentation: pemDocument.derBytes))
+            self = try .init(_RSA.Signing.PrivateKey.init(derRepresentation: pemDocument.derBytes))
 
         case Self.pemDiscriminatorForSEC1:
             let sec1 = try SEC1PrivateKey(derEncoded: pemDocument.derBytes)
@@ -345,7 +347,7 @@ extension Certificate.PrivateKey {
         case .p384(let key): return try PEMDocument(pemString: key.pemRepresentation)
         case .p521(let key): return try PEMDocument(pemString: key.pemRepresentation)
         case .rsa(let key): return try PEMDocument(pemString: key.pemRepresentation)
-        #if canImport(Darwin)
+        #if canImport(Darwin)  && !FORCE_BUILD_SWIFT_CRYPTO_API
         case .secureEnclaveP256:
             throw CertificateError.unsupportedPrivateKey(
                 reason: "secure enclave private keys can not be serialised as PEM"
@@ -373,7 +375,7 @@ extension Certificate.PrivateKey {
             self = try .init(ecdsaAlgorithm: pkcs8.algorithm, rawEncodedPrivateKey: sec1.privateKey.bytes)
 
         case .rsaKey:
-            self = try .init(_CryptoExtras._RSA.Signing.PrivateKey(derRepresentation: pkcs8.privateKey.bytes))
+            self = try .init(_RSA.Signing.PrivateKey(derRepresentation: pkcs8.privateKey.bytes))
         case .ed25519:
             self = try .init(Curve25519.Signing.PrivateKey(pkcs8Key: pkcs8))
         default:

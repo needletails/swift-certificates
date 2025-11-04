@@ -13,8 +13,9 @@
 //===----------------------------------------------------------------------===//
 
 import SwiftASN1
+#if FORCE_BUILD_SWIFT_CRYPTO_API || !canImport(CryptoKit)
 import Crypto
-#if canImport(CryptoKit)
+#elseif canImport(CryptoKit)
 import CryptoKit
 #endif
 import _CryptoExtras
@@ -97,7 +98,7 @@ extension Certificate.Signature {
     @usableFromInline
     enum BackingSignature: Hashable, Sendable {
         case ecdsa(ECDSASignature)
-        case rsa(_CryptoExtras._RSA.Signing.RSASignature)
+        case rsa(_RSA.Signing.RSASignature)
         case ed25519(Data)
 
         @inlinable
@@ -340,7 +341,7 @@ extension P256.Signing.PrivateKey {
     }
 }
 
-#if canImport(Darwin)
+#if canImport(Darwin) && !FORCE_BUILD_SWIFT_CRYPTO_API
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension SecureEnclave.P256.Signing.PrivateKey {
     @inlinable
@@ -471,3 +472,15 @@ extension Curve25519.Signing.PrivateKey {
         return Certificate.Signature(backing: .ed25519(.init(signature)))
     }
 }
+//
+//#if canImport(Darwin) && !FORCE_BUILD_SWIFT_CRYPTO_API
+//@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
+//public typealias Curve25519 = Curve25519
+//@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
+//public typealias P256 = P256
+//@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
+//public typealias P384 = P384
+//@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
+//public typealias P521 = P521
+//
+//#endif

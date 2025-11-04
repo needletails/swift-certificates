@@ -17,7 +17,11 @@ import FoundationEssentials
 import Foundation
 #endif
 import SwiftASN1
+#if FORCE_BUILD_SWIFT_CRYPTO_API || !canImport(CryptoKit)
 import Crypto
+#else
+import CryptoKit
+#endif
 
 /// An ECDSA signature is laid out as follows:
 ///
